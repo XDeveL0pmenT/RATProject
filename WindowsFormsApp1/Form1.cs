@@ -320,5 +320,14 @@ namespace WindowsFormsApp1
 
         }
 
+        private void button3_Click_1(object sender, EventArgs e)
+        {
+
+        }
+
+        private void button4_Click(object sender, EventArgs e)
+        {
+
+        }
     }
 }
