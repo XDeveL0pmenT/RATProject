@@ -45,6 +45,7 @@ namespace WindowsFormsApp1
         //}
 
         bool Server = true;
+        bool Languege = false; // False: Eng True: Ru
         string localIP = "?";
         string ChosenIP = "?";
         string ServerPort = "?";
@@ -110,8 +111,16 @@ namespace WindowsFormsApp1
 
         private void button1_Click(object sender, EventArgs e)
         {
-            button1.Text = "Connect";
-            label2.Text = "Connecting";
+            if (Languege)
+            {
+                button1.Text = "Подключится";
+                label2.Text = "Подключится";
+            }
+            else
+            {
+                button1.Text = "Connect";
+                label2.Text = "Connecting";
+            }
             this.Text = "Client";
             Server = false;
             this.textBox2.Text = ChosenIP;
@@ -136,8 +145,16 @@ namespace WindowsFormsApp1
         private void button3_Click(object sender, EventArgs e)
         {
             ChosenIP = this.textBox2.Text;
-            button1.Text = "Share";
-            label2.Text = "Sharing";
+            if (Languege)
+            {
+                button1.Text = "Поделится";
+                label2.Text = "Поделится";
+            }
+            else
+            {
+                button1.Text = "Share";
+                label2.Text = "Sharing";
+            }
             this.Text = "Server";
             this.textBox2.Text = localIP;
             Server = true;
@@ -157,12 +174,25 @@ namespace WindowsFormsApp1
             {
                 listener = new TcpListener(IPAddress.Any, int.Parse(textBox1.Text));
                 listener.Start();
-
-                textBox3.AppendText("Waiting for client...\n");
+                if (Languege)
+                {
+                    textBox3.AppendText("Ожидание клиента...\n");
+                }
+                else
+                {
+                    textBox3.AppendText("Waiting for client...\n");
+                }
 
                 Client = await listener.AcceptTcpClientAsync();
 
-                textBox3.AppendText("Client connected!\n");
+                if (Languege)
+                {
+                    textBox3.AppendText("Клиент подключен!\n");
+                }
+                else
+                {
+                    textBox3.AppendText("Client connected!\n");
+                }
 
                 STR = new StreamReader(Client.GetStream());
                 STW = new StreamWriter(Client.GetStream()) { AutoFlush = true };
@@ -179,8 +209,14 @@ namespace WindowsFormsApp1
             try
             {
                 Client = new TcpClient();
-
-                textBox3.AppendText("Connecting to server...\n");
+                if (Languege)
+                {
+                    textBox3.AppendText("Подключение к серверу...\n");
+                }
+                else
+                {
+                    textBox3.AppendText("Connecting to server...\n");
+                }
 
                 await Client.ConnectAsync(
                     IPAddress.Parse(textBox2.Text),
@@ -190,7 +226,15 @@ namespace WindowsFormsApp1
                 STR = new StreamReader(Client.GetStream());
                 STW = new StreamWriter(Client.GetStream()) { AutoFlush = true };
                 ClientConnected = true;
-                textBox3.AppendText("Connected!\n");
+
+                if (Languege)
+                {
+                    textBox3.AppendText("Подключено!\n");
+                }
+                else
+                {
+                    textBox3.AppendText("Connected!\n");
+                }
 
             }
             catch (Exception ex)
@@ -272,9 +316,16 @@ namespace WindowsFormsApp1
                     listener.Stop();
                     listener = null;
 
-
-                    await AMessage("Stoping server");
-                    this.textBox3.AppendText("Client disconnected.\n");
+                    if (Languege)
+                    {
+                        await AMessage("Остановка сервера");
+                        this.textBox3.AppendText("Клиент отключен.\n");
+                    }
+                    else
+                    {
+                        await AMessage("Stoping server");
+                        this.textBox3.AppendText("Client disconnected.\n");
+                    }
                 }
 
             }
@@ -285,8 +336,16 @@ namespace WindowsFormsApp1
                     Client.Close();
                     ClientConnected = false;
                     Client = null;
-                    await AMessage("Stopping connection");
-                    this.textBox3.AppendText("Client disconnected.\n");
+                    if (Languege)
+                    {
+                        await AMessage("Остоновка подключения");
+                        this.textBox3.AppendText("Клиент отключен.\n");
+                    }
+                    else
+                    {
+                        await AMessage("Stopping connection");
+                        this.textBox3.AppendText("Client disconnected.\n");
+                    }
                 }
             }
         }
@@ -322,12 +381,50 @@ namespace WindowsFormsApp1
 
         private void button3_Click_1(object sender, EventArgs e)
         {
-
-        }
+            if (Languege != true)
+            {
+                Languege = true; // False: Eng True: Ru
+                Share.Text = "Вкладка «Поделиться»";
+                Connect.Text = "Вкладка «Подключится»";
+                if (Server)
+                {
+                    label2.Text = "Поделиться";
+                    button1.Text = "Поделиться";
+                }
+                else
+                {
+                    label2.Text = "Подключится";
+                    button1.Text = "Подключится";
+                }
+                Host.Text = "Хост";
+                label1.Text = "Порт";
+                button2.Text = "Остановится";
+                label3.Text = "Логи";
+            }
+            }
 
         private void button4_Click(object sender, EventArgs e)
         {
-
+            if (Languege != false)
+            {
+                Languege = false; // False: Eng True: Ru
+                Share.Text = "Share tab»";
+                Connect.Text = "Connect tab";
+                if (Server == true)
+                {
+                    label2.Text = "Sharing";
+                    button1.Text = "Share";
+                }
+                else
+                {
+                    label2.Text = "Connecting";
+                    button1.Text = "Connect";
+                }
+                Host.Text = "Host";
+                label1.Text = "Port";
+                button2.Text = "Stop";
+                label3.Text = "Output";
+            }
         }
     }
 }
