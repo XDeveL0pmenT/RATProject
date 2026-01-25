@@ -50,6 +50,8 @@ namespace WindowsFormsApp1
             this.label3 = new System.Windows.Forms.Label();
             this.button3 = new System.Windows.Forms.Button();
             this.button4 = new System.Windows.Forms.Button();
+            this.button5 = new System.Windows.Forms.Button();
+            this.checkBox1 = new System.Windows.Forms.CheckBox();
             this.panel1.SuspendLayout();
             this.panel2.SuspendLayout();
             this.panel3.SuspendLayout();
@@ -194,6 +196,7 @@ namespace WindowsFormsApp1
             // 
             this.panel4.BackColor = System.Drawing.SystemColors.ScrollBar;
             this.panel4.BorderStyle = System.Windows.Forms.BorderStyle.Fixed3D;
+            this.panel4.Controls.Add(this.checkBox1);
             this.panel4.Controls.Add(this.Connect);
             this.panel4.Controls.Add(this.Share);
             this.panel4.Location = new System.Drawing.Point(0, 1);
@@ -211,7 +214,7 @@ namespace WindowsFormsApp1
             this.Connect.Name = "Connect";
             this.Connect.Size = new System.Drawing.Size(121, 110);
             this.Connect.TabIndex = 1;
-            this.Connect.Text = "Connect tab";
+            this.Connect.Text = "Client Tab";
             this.Connect.UseVisualStyleBackColor = false;
             this.Connect.Click += new System.EventHandler(this.button1_Click);
             // 
@@ -224,7 +227,7 @@ namespace WindowsFormsApp1
             this.Share.Name = "Share";
             this.Share.Size = new System.Drawing.Size(121, 110);
             this.Share.TabIndex = 0;
-            this.Share.Text = "Share tab";
+            this.Share.Text = "Server Tab";
             this.Share.UseVisualStyleBackColor = false;
             this.Share.Click += new System.EventHandler(this.button3_Click);
             // 
@@ -274,6 +277,31 @@ namespace WindowsFormsApp1
             this.button4.UseVisualStyleBackColor = true;
             this.button4.Click += new System.EventHandler(this.button4_Click);
             // 
+            // button5
+            // 
+            this.button5.Location = new System.Drawing.Point(446, 112);
+            this.button5.Name = "button5";
+            this.button5.Size = new System.Drawing.Size(112, 25);
+            this.button5.TabIndex = 15;
+            this.button5.Text = "Clear Output";
+            this.button5.UseVisualStyleBackColor = true;
+            this.button5.Click += new System.EventHandler(this.button5_Click);
+            // 
+            // checkBox1
+            // 
+            this.checkBox1.Anchor = ((System.Windows.Forms.AnchorStyles)((System.Windows.Forms.AnchorStyles.Bottom | System.Windows.Forms.AnchorStyles.Left)));
+            this.checkBox1.AutoSize = true;
+            this.checkBox1.Checked = true;
+            this.checkBox1.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.checkBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+            this.checkBox1.Location = new System.Drawing.Point(3, 261);
+            this.checkBox1.Name = "checkBox1";
+            this.checkBox1.Size = new System.Drawing.Size(115, 24);
+            this.checkBox1.TabIndex = 2;
+            this.checkBox1.Text = "Sync Mouse";
+            this.checkBox1.UseVisualStyleBackColor = true;
+            this.checkBox1.CheckedChanged += new System.EventHandler(this.checkBox1_CheckedChanged);
+            // 
             // Form1
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
@@ -281,6 +309,7 @@ namespace WindowsFormsApp1
             this.BackColor = System.Drawing.SystemColors.ActiveBorder;
             this.BackgroundImageLayout = System.Windows.Forms.ImageLayout.Stretch;
             this.ClientSize = new System.Drawing.Size(557, 300);
+            this.Controls.Add(this.button5);
             this.Controls.Add(this.button4);
             this.Controls.Add(this.button3);
             this.Controls.Add(this.label3);
@@ -304,6 +333,7 @@ namespace WindowsFormsApp1
             this.panel3.ResumeLayout(false);
             this.panel3.PerformLayout();
             this.panel4.ResumeLayout(false);
+            this.panel4.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -327,6 +357,8 @@ namespace WindowsFormsApp1
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Button button3;
         private System.Windows.Forms.Button button4;
+        private System.Windows.Forms.Button button5;
+        private System.Windows.Forms.CheckBox checkBox1;
     }
 }
 

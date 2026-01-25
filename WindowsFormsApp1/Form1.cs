@@ -35,6 +35,12 @@ namespace WindowsFormsApp1
         const uint KEYEVENTF_KEYDOWN = 0x0000;
         const uint KEYEVENTF_KEYUP = 0x0002;
 
+        [DllImport("user32.dll")]
+        static extern void mouse_event(uint dwFlags, int dx, int dy, uint dwData, UIntPtr dwExtraInfo);
+
+        const uint MOUSEEVENTF_MOVE = 0x0001;
+
+
 
         void PressKey(int key)
         {
@@ -58,6 +64,7 @@ namespace WindowsFormsApp1
         public StreamReader STR;
         public StreamWriter STW;
         bool Languege = false;
+        bool MouseSync = true;
 
 
         public string DataToSend;
@@ -124,7 +131,9 @@ namespace WindowsFormsApp1
                 button1.Text = "Connect";
                 label2.Text = "Connecting";
             }
-
+            this.checkBox1.Hide();
+            this.checkBox1.Enabled = false;
+            this.checkBox1.Visible = false;
             this.Text = "Client";
             Server = false;
             this.textBox2.Text = ChosenIP;
@@ -159,6 +168,9 @@ namespace WindowsFormsApp1
                 button1.Text = "Share";
                 label2.Text = "Sharing";
             }
+            this.checkBox1.Show();
+            this.checkBox1.Enabled = true;
+            this.checkBox1.Visible = true;
             this.Text = "Server";
             this.textBox2.Text = localIP;
             Server = true;
@@ -246,8 +258,22 @@ namespace WindowsFormsApp1
 
         private async Task UpdateKey()
         {
+            Point lastMousePos = Cursor.Position;
             while (ClientConnected)
             {
+
+                    Point currentPos = Cursor.Position;
+
+                    int dx = currentPos.X - lastMousePos.X;
+                    int dy = currentPos.Y - lastMousePos.Y;
+
+                    if (dx != 0 || dy != 0)
+                    {
+                        STW.WriteLine($"M:{dx},{dy}");
+                    }
+
+                    lastMousePos = currentPos;
+
                 var currentKeys = new List<int>();
                 for (int i = 0; i < 256; i++)
                 {
@@ -277,6 +303,7 @@ namespace WindowsFormsApp1
         {
             if (Server)
             {
+
                 await StartServerAsync();
                 await backgroundwork1();
             }
@@ -366,6 +393,7 @@ namespace WindowsFormsApp1
                 }
                 Host.Text = "Хост";
                 label1.Text = "Порт";
+                button5.Text = "Очистить логи";
                 button2.Text = "Остановится";
                 label3.Text = "Логи";
             }
@@ -389,6 +417,7 @@ namespace WindowsFormsApp1
                     button1.Text = "Connect";
                 }
                 Host.Text = "Host";
+                button5.Text = "Clear Output";
                 label1.Text = "Port";
                 button2.Text = "Stop";
                 label3.Text = "Output";
@@ -418,7 +447,23 @@ namespace WindowsFormsApp1
                 try
                 {
                     KeysToSent = await STR.ReadLineAsync();
+                    if (MouseSync)  
+                    {
+                        if (KeysToSent.StartsWith("M:"))
+                        {
+                            var data = KeysToSent.Substring(2).Split(',');
+                            int dx = int.Parse(data[0]);
+                            int dy = int.Parse(data[1]);
 
+                            if (Languege)
+                                textBox3.AppendText($"Мышь: {dx},{dy}\n");
+                            else
+                                textBox3.AppendText($"Mouse: {dx},{dy}\n");
+
+                            mouse_event(MOUSEEVENTF_MOVE, dx, dy, 0, UIntPtr.Zero);
+                            continue;
+                        }
+                    }  
 
                     string[] parts = KeysToSent.Split(';');
                     foreach (string part in parts)
@@ -471,5 +516,29 @@ namespace WindowsFormsApp1
 
         }
 
+        private void button5_Click(object sender, EventArgs e)
+        {
+            textBox3.Text = string.Empty;
+        }
+
+        private void checkBox1_CheckedChanged(object sender, EventArgs e)
+        {
+            if (Client != null && Client.Connected)
+            {
+                textBox3.AppendText("Cannot change Mouse Sync during connection!\n");
+                checkBox1.Checked = MouseSync;
+                return;
+            }
+            MouseSync = checkBox1.Checked;
+
+            if (MouseSync)
+            {
+                textBox3.AppendText("Mouse sync enabled.\n");
+            }
+            else
+            {
+                textBox3.AppendText("Mouse sync disabled.\n");
+            }
+        }
     }
 }
