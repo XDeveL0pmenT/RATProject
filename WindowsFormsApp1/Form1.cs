@@ -16,9 +16,6 @@ using System.IO;
 using System.Diagnostics;
 
 
-using System.Net;
-using System.Net.Sockets;
-using System.IO;
 
 
 
@@ -31,21 +28,25 @@ namespace WindowsFormsApp1
     {
         [DllImport("user32.dll")]
         private static extern short GetAsyncKeyState(int vKey);
-        //  public static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
+
+        [DllImport("user32.dll")]
+        static extern void keybd_event(byte bVk, byte bScan, uint dwFlags, UIntPtr dwExtraInfo);
+
+        const uint KEYEVENTF_KEYDOWN = 0x0000;
+        const uint KEYEVENTF_KEYUP = 0x0002;
 
 
-        const int KEYEVENTF_KEYDOWN = 0x0000;
-        const int KEYEVENTF_KEYUP = 0x0002;
+        void PressKey(int key)
+        {
+            keybd_event((byte)key, 0, KEYEVENTF_KEYDOWN, UIntPtr.Zero);
+        }
 
-
-        //private void PressKey(int key)
-        //{
-        //    keybd_event((byte)key, 0, KEYEVENTF_KEYDOWN, UIntPtr.Zero);
-        //    keybd_event((byte)key, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
-        //}
+        void ReleaseKey(int key)
+        {
+            keybd_event((byte)key, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
+        }
 
         bool Server = true;
-        bool Languege = false; // False: Eng True: Ru
         string localIP = "?";
         string ChosenIP = "?";
         string ServerPort = "?";
@@ -56,6 +57,8 @@ namespace WindowsFormsApp1
         private TcpListener listener;
         public StreamReader STR;
         public StreamWriter STW;
+        bool Languege = false;
+
 
         public string DataToSend;
 
@@ -121,6 +124,7 @@ namespace WindowsFormsApp1
                 button1.Text = "Connect";
                 label2.Text = "Connecting";
             }
+
             this.Text = "Client";
             Server = false;
             this.textBox2.Text = ChosenIP;
@@ -174,6 +178,7 @@ namespace WindowsFormsApp1
             {
                 listener = new TcpListener(IPAddress.Any, int.Parse(textBox1.Text));
                 listener.Start();
+
                 if (Languege)
                 {
                     textBox3.AppendText("Ожидание клиента...\n");
@@ -209,6 +214,7 @@ namespace WindowsFormsApp1
             try
             {
                 Client = new TcpClient();
+
                 if (Languege)
                 {
                     textBox3.AppendText("Подключение к серверу...\n");
@@ -226,15 +232,7 @@ namespace WindowsFormsApp1
                 STR = new StreamReader(Client.GetStream());
                 STW = new StreamWriter(Client.GetStream()) { AutoFlush = true };
                 ClientConnected = true;
-
-                if (Languege)
-                {
-                    textBox3.AppendText("Подключено!\n");
-                }
-                else
-                {
-                    textBox3.AppendText("Connected!\n");
-                }
+                textBox3.AppendText("Connected!\n");
 
             }
             catch (Exception ex)
@@ -244,29 +242,31 @@ namespace WindowsFormsApp1
         }
 
 
-        List<int> HoldedKeys = new List<int>();
+        List<int> LastKeys = new List<int>();
 
         private async Task UpdateKey()
         {
             while (ClientConnected)
             {
-                HoldedKeys.Clear();
+                var currentKeys = new List<int>();
                 for (int i = 0; i < 256; i++)
                 {
                     if ((GetAsyncKeyState(i) & 0x8000) != 0)
-                    {
-                        HoldedKeys.Add(i);
-                    }
+                        currentKeys.Add(i);
                 }
 
+                var pressedKeys = currentKeys.Except(LastKeys).ToList();
+                var releasedKeys = LastKeys.Except(currentKeys).ToList();
 
-                if (HoldedKeys.Count > 0 && Client.Connected)
+                if (pressedKeys.Count > 0 || releasedKeys.Count > 0)
                 {
-                    string SendToServer = string.Join(",", HoldedKeys);
-                    STW.WriteLine(SendToServer);
+                    string msg = string.Join("+", pressedKeys.Select(k => k + "D")) + ";" +
+                                 string.Join("+", releasedKeys.Select(k => k + "U"));
+                    STW.WriteLine(msg);
                 }
 
-                await Task.Delay(10);
+                LastKeys = currentKeys;
+                await Task.Delay(5);
             }
         }
 
@@ -278,6 +278,7 @@ namespace WindowsFormsApp1
             if (Server)
             {
                 await StartServerAsync();
+                await backgroundwork1();
             }
             else
             {
@@ -289,22 +290,7 @@ namespace WindowsFormsApp1
         }
 
 
-        private void backgroundworker1_DoWork()
-        {
-            while (Client.Connected)
-            {
-                try
-                {
-                    DataToSend = STR.ReadLine();
 
-                }
-                catch (Exception ex)
-                {
-
-                    MessageBox.Show(ex.Message.ToString());
-                }
-            }
-        }
 
         private async void Stop(object sender, EventArgs e)
         {
@@ -315,6 +301,7 @@ namespace WindowsFormsApp1
 
                     listener.Stop();
                     listener = null;
+
 
                     if (Languege)
                     {
@@ -360,25 +347,6 @@ namespace WindowsFormsApp1
 
         }
 
-        private void backgroundwork1(object sender, EventArgs e)
-        {
-            while (Client.Connected)
-            {
-                try
-                {
-                    KeysToSent = STR.ReadLine();
-                    this.textBox3.AppendText(KeysToSent);
-                    KeysToSent = "";
-                }
-                catch (Exception ex)
-                {
-
-                    MessageBox.Show(ex.Message.ToString());
-                }
-            }
-
-        }
-
         private void button3_Click_1(object sender, EventArgs e)
         {
             if (Languege != true)
@@ -401,7 +369,7 @@ namespace WindowsFormsApp1
                 button2.Text = "Остановится";
                 label3.Text = "Логи";
             }
-            }
+        }
 
         private void button4_Click(object sender, EventArgs e)
         {
@@ -426,5 +394,82 @@ namespace WindowsFormsApp1
                 label3.Text = "Output";
             }
         }
+
+
+        string KeyNameFromVK(int vk)
+        {
+            try
+            {
+                return ((Keys)vk).ToString();
+            }
+            catch
+            {
+                return vk.ToString();
+            }
+        }
+
+
+
+
+        private async Task backgroundwork1()
+        {
+            while (Client.Connected)
+            {
+                try
+                {
+                    KeysToSent = await STR.ReadLineAsync();
+
+
+                    string[] parts = KeysToSent.Split(';');
+                    foreach (string part in parts)
+                    {
+                        if (part.Length == 0) continue;
+                        string[] keys = part.Split('+');
+                        foreach (var keyStr in keys)
+                        {
+                            if (keyStr.EndsWith("D"))
+                            {
+                                int key = int.Parse(keyStr.TrimEnd('D'));
+                                if (Languege != true)
+                                {
+                                    this.textBox3.AppendText(KeyNameFromVK(key) + " START ");
+                                }
+                                else
+                                    this.textBox3.AppendText(KeyNameFromVK(key) + " НАЧАЛО ");
+
+
+                                PressKey(key);
+
+
+
+                            }
+                            else if (keyStr.EndsWith("U"))
+                            {
+                                await Task.Delay(10);
+                                int key = int.Parse(keyStr.TrimEnd('U'));
+                                if (Languege != true)
+                                {
+                                    this.textBox3.AppendText(KeyNameFromVK(key) + " END ");
+                                }
+                                else
+                                    this.textBox3.AppendText(KeyNameFromVK(key) + " КОНЕЦ ");
+
+                                ReleaseKey(key);
+
+                            }
+                        }
+                    }
+                    KeysToSent = "";
+
+                }
+                catch (Exception ex)
+                {
+
+                    MessageBox.Show(ex.Message.ToString());
+                }
+            }
+
+        }
+
     }
 }
