@@ -1,19 +1,18 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Data;
+using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Runtime.InteropServices;
-using System.Windows.Forms;
-
-
 using System.Net;
 using System.Net.Sockets;
-using System.IO;
-using System.Diagnostics;
+using System.Runtime.InteropServices;
+using System.Text;
+using System.Threading.Tasks;
+using System.Windows.Forms;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.Button;
 
 
 
@@ -40,18 +39,56 @@ namespace WindowsFormsApp1
 
         const uint MOUSEEVENTF_MOVE = 0x0001;
 
+        const uint MOUSEEVENTF_LEFTDOWN = 0x0002;
+        const uint MOUSEEVENTF_LEFTUP = 0x0004;
+        const uint MOUSEEVENTF_RIGHTDOWN = 0x0008;
+        const uint MOUSEEVENTF_RIGHTUP = 0x0010;
+
 
 
         void PressKey(int key)
         {
-            keybd_event((byte)key, 0, KEYEVENTF_KEYDOWN, UIntPtr.Zero);
+            switch (key)
+            {
+                case 1:
+                    mouse_event(MOUSEEVENTF_LEFTDOWN, 0, 0, 0, UIntPtr.Zero);
+                    break;
+
+                case 2:
+                    mouse_event(MOUSEEVENTF_RIGHTDOWN, 0, 0, 0, UIntPtr.Zero);
+                    break;
+
+                case 4:
+                    mouse_event(0x0080, 0, 0, 0x0001, UIntPtr.Zero);
+                    break;
+
+                default:
+                    keybd_event((byte)key, 0, KEYEVENTF_KEYDOWN, UIntPtr.Zero);
+                    break;
+            }
         }
 
         void ReleaseKey(int key)
         {
-            keybd_event((byte)key, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
-        }
+            switch (key)
+            {
+                case 1:
+                    mouse_event(MOUSEEVENTF_LEFTUP, 0, 0, 0, UIntPtr.Zero);
+                    break;
 
+                case 2:
+                    mouse_event(MOUSEEVENTF_RIGHTUP, 0, 0, 0, UIntPtr.Zero);
+                    break;
+
+                case 4:
+                    mouse_event(0x0100, 0, 0, 0x0001, UIntPtr.Zero);
+                    break;
+
+                default:
+                    keybd_event((byte)key, 0, KEYEVENTF_KEYUP, UIntPtr.Zero);
+                    break;
+            }
+        }
         bool Server = true;
         string localIP = "?";
         string ChosenIP = "?";
@@ -65,7 +102,7 @@ namespace WindowsFormsApp1
         public StreamWriter STW;
         bool Languege = false;
         bool MouseSync = true;
-
+        volatile bool IsRunning = false;
 
         public string DataToSend;
 
@@ -87,20 +124,14 @@ namespace WindowsFormsApp1
 
         }
 
-        private void label1_Click(object sender, EventArgs e)
-        {
 
-        }
 
         private void Form1_Load(object sender, EventArgs e)
         {
 
         }
 
-        private void label1_Click_1(object sender, EventArgs e)
-        {
 
-        }
 
         private void textBox1_TextChanged(object sender, EventArgs e)
         {
@@ -114,17 +145,13 @@ namespace WindowsFormsApp1
             }
         }
 
-        private void label1_Click_2(object sender, EventArgs e)
-        {
-
-        }
 
         private void button1_Click(object sender, EventArgs e)
         {
             if (Languege)
             {
-                button1.Text = "Подключится";
-                label2.Text = "Подключится";
+                button1.Text = "Подключиться";
+                label2.Text = "Подключиться";
             }
             else
             {
@@ -140,28 +167,15 @@ namespace WindowsFormsApp1
             this.textBox1.Text = ChosenPort;
         }
 
-        private void panel1_Paint(object sender, PaintEventArgs e)
-        {
 
-        }
-
-        private void panel2_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
-
-        private void panel3_Paint(object sender, PaintEventArgs e)
-        {
-
-        }
 
         private void button3_Click(object sender, EventArgs e)
         {
             ChosenIP = this.textBox2.Text;
             if (Languege)
             {
-                button1.Text = "Поделится";
-                label2.Text = "Поделится";
+                button1.Text = "Поделиться";
+                label2.Text = "Поделиться";
             }
             else
             {
@@ -213,6 +227,7 @@ namespace WindowsFormsApp1
 
                 STR = new StreamReader(Client.GetStream());
                 STW = new StreamWriter(Client.GetStream()) { AutoFlush = true };
+                IsRunning = true;
             }
             catch (Exception ex)
             {
@@ -244,7 +259,11 @@ namespace WindowsFormsApp1
                 STR = new StreamReader(Client.GetStream());
                 STW = new StreamWriter(Client.GetStream()) { AutoFlush = true };
                 ClientConnected = true;
-                textBox3.AppendText("Connected!\n");
+                IsRunning = true;
+                if (Languege)
+                    textBox3.AppendText("Подключено!\n");
+                else
+                    textBox3.AppendText("Connected!\n");
 
             }
             catch (Exception ex)
@@ -259,20 +278,20 @@ namespace WindowsFormsApp1
         private async Task UpdateKey()
         {
             Point lastMousePos = Cursor.Position;
-            while (ClientConnected)
+            while (IsRunning && ClientConnected)
             {
 
-                    Point currentPos = Cursor.Position;
+                Point currentPos = Cursor.Position;
 
-                    int dx = currentPos.X - lastMousePos.X;
-                    int dy = currentPos.Y - lastMousePos.Y;
+                int dx = currentPos.X - lastMousePos.X;
+                int dy = currentPos.Y - lastMousePos.Y;
 
-                    if (dx != 0 || dy != 0)
-                    {
-                        STW.WriteLine($"M:{dx},{dy}");
-                    }
+                if (dx != 0 || dy != 0)
+                {
+                    STW.WriteLine($"M:{dx},{dy}");
+                }
 
-                    lastMousePos = currentPos;
+                lastMousePos = currentPos;
 
                 var currentKeys = new List<int>();
                 for (int i = 0; i < 256; i++)
@@ -321,46 +340,33 @@ namespace WindowsFormsApp1
 
         private async void Stop(object sender, EventArgs e)
         {
-            if (Server)
+            IsRunning = false;
+            ClientConnected = false;
+
+            try
             {
-                if (listener != null)
-                {
+                STR?.Close();
+                STW?.Close();
 
-                    listener.Stop();
-                    listener = null;
+                Client?.Close();
+                listener?.Stop();
 
+                Client = null;
+                listener = null;
+            }
+            catch { }
 
-                    if (Languege)
-                    {
-                        await AMessage("Остановка сервера");
-                        this.textBox3.AppendText("Клиент отключен.\n");
-                    }
-                    else
-                    {
-                        await AMessage("Stoping server");
-                        this.textBox3.AppendText("Client disconnected.\n");
-                    }
-                }
+            LastKeys.Clear();
 
+            if (Languege)
+            {
+                await AMessage("Остановлено");
+                textBox3.AppendText("Соединение закрыто\n");
             }
             else
             {
-                if (Client.Connected)
-                {
-                    Client.Close();
-                    ClientConnected = false;
-                    Client = null;
-                    if (Languege)
-                    {
-                        await AMessage("Остоновка подключения");
-                        this.textBox3.AppendText("Клиент отключен.\n");
-                    }
-                    else
-                    {
-                        await AMessage("Stopping connection");
-                        this.textBox3.AppendText("Client disconnected.\n");
-                    }
-                }
+                await AMessage("Stopped");
+                textBox3.AppendText("Connection closed\n");
             }
         }
 
@@ -378,23 +384,27 @@ namespace WindowsFormsApp1
         {
             if (Languege != true)
             {
+                this.checkBox1.Text = "Синхронизация\n     мыши";
+                this.checkBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+                this.Share.Font = new System.Drawing.Font("Verdana", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
                 Languege = true; // False: Eng True: Ru
                 Share.Text = "Вкладка «Поделиться»";
-                Connect.Text = "Вкладка «Подключится»";
+                Connect.Text = "Вкладка «Подключиться»";
+                this.Connect.Font = new System.Drawing.Font("Verdana", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
                 if (Server)
                 {
-                    label2.Text = "Поделиться";
+                    label2.Text = "Ожидание подключения";
                     button1.Text = "Поделиться";
                 }
                 else
                 {
-                    label2.Text = "Подключится";
-                    button1.Text = "Подключится";
+                    label2.Text = "Подключение";
+                    button1.Text = "Подключиться";
                 }
                 Host.Text = "Хост";
                 label1.Text = "Порт";
                 button5.Text = "Очистить логи";
-                button2.Text = "Остановится";
+                button2.Text = "Остановка";
                 label3.Text = "Логи";
             }
         }
@@ -403,9 +413,13 @@ namespace WindowsFormsApp1
         {
             if (Languege != false)
             {
+                this.checkBox1.Text = "Sync Mouse";
+                this.Share.Font = new System.Drawing.Font("Verdana", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
                 Languege = false; // False: Eng True: Ru
-                Share.Text = "Share tab»";
+                this.checkBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+                Share.Text = "Share tab";
                 Connect.Text = "Connect tab";
+                this.Connect.Font = new System.Drawing.Font("Verdana", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
                 if (Server == true)
                 {
                     label2.Text = "Sharing";
@@ -442,12 +456,12 @@ namespace WindowsFormsApp1
 
         private async Task backgroundwork1()
         {
-            while (Client.Connected)
+            while (IsRunning)
             {
                 try
                 {
                     KeysToSent = await STR.ReadLineAsync();
-                    if (MouseSync)  
+                    if (MouseSync)
                     {
                         if (KeysToSent.StartsWith("M:"))
                         {
@@ -463,7 +477,8 @@ namespace WindowsFormsApp1
                             mouse_event(MOUSEEVENTF_MOVE, dx, dy, 0, UIntPtr.Zero);
                             continue;
                         }
-                    }  
+
+                    }
 
                     string[] parts = KeysToSent.Split(';');
                     foreach (string part in parts)
@@ -477,10 +492,10 @@ namespace WindowsFormsApp1
                                 int key = int.Parse(keyStr.TrimEnd('D'));
                                 if (Languege != true)
                                 {
-                                    this.textBox3.AppendText(KeyNameFromVK(key) + " START ");
+                                    this.textBox3.AppendText(KeyNameFromVK(key) + " DOWN ");
                                 }
                                 else
-                                    this.textBox3.AppendText(KeyNameFromVK(key) + " НАЧАЛО ");
+                                    this.textBox3.AppendText(KeyNameFromVK(key) + " НАЖАТИЕ ");
 
 
                                 PressKey(key);
@@ -494,10 +509,11 @@ namespace WindowsFormsApp1
                                 int key = int.Parse(keyStr.TrimEnd('U'));
                                 if (Languege != true)
                                 {
-                                    this.textBox3.AppendText(KeyNameFromVK(key) + " END ");
+
+                                    this.textBox3.AppendText(KeyNameFromVK(key) + " UP ");
                                 }
                                 else
-                                    this.textBox3.AppendText(KeyNameFromVK(key) + " КОНЕЦ ");
+                                    this.textBox3.AppendText(KeyNameFromVK(key) + " ОТПУСКАНИЕ ");
 
                                 ReleaseKey(key);
 
@@ -525,7 +541,10 @@ namespace WindowsFormsApp1
         {
             if (Client != null && Client.Connected)
             {
-                textBox3.AppendText("Cannot change Mouse Sync during connection!\n");
+                if (Languege != true)
+                    textBox3.AppendText("Cannot change Mouse Sync during connection!\n");
+                else
+                    textBox3.AppendText("Нельзя изменить синхронизацию мыши во время соединения!\n");
                 checkBox1.Checked = MouseSync;
                 return;
             }
@@ -533,11 +552,20 @@ namespace WindowsFormsApp1
 
             if (MouseSync)
             {
-                textBox3.AppendText("Mouse sync enabled.\n");
+
+
+
+                if (Languege != true)
+                    textBox3.AppendText("Mouse sync enabled.\n");
+                else
+                    textBox3.AppendText("Синхронизация мыши включена.\n");
             }
             else
             {
-                textBox3.AppendText("Mouse sync disabled.\n");
+                if (Languege != true)
+                    textBox3.AppendText("Mouse sync disabled.\n");
+                else
+                    textBox3.AppendText("Синхронизация мыши выключена.\n");
             }
         }
     }
