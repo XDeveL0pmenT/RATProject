@@ -151,7 +151,7 @@ namespace WindowsFormsApp1
             if (Languege)
             {
                 button1.Text = "Подключиться";
-                label2.Text = "Подключиться";
+                label2.Text = "Подключение";
             }
             else
             {
@@ -175,7 +175,7 @@ namespace WindowsFormsApp1
             if (Languege)
             {
                 button1.Text = "Поделиться";
-                label2.Text = "Поделиться";
+                label2.Text = "Ожидание подключения";
             }
             else
             {
@@ -384,8 +384,7 @@ namespace WindowsFormsApp1
         {
             if (Languege != true)
             {
-                this.checkBox1.Text = "Синхронизация\n     мыши";
-                this.checkBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+                this.checkBox1.Text = "Синх. мыши";
                 this.Share.Font = new System.Drawing.Font("Verdana", 9F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
                 Languege = true; // False: Eng True: Ru
                 Share.Text = "Вкладка «Поделиться»";
@@ -401,8 +400,9 @@ namespace WindowsFormsApp1
                     label2.Text = "Подключение";
                     button1.Text = "Подключиться";
                 }
-                Host.Text = "Хост";
-                label1.Text = "Порт";
+                Host.Text = "Хост:";
+                label1.Font = new System.Drawing.Font("Corbel Light", 14.75F);
+                label1.Text = "Порт:";
                 button5.Text = "Очистить логи";
                 button2.Text = "Остановка";
                 label3.Text = "Логи";
@@ -414,12 +414,12 @@ namespace WindowsFormsApp1
             if (Languege != false)
             {
                 this.checkBox1.Text = "Sync Mouse";
-                this.Share.Font = new System.Drawing.Font("Verdana", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+                this.Share.Font = new System.Drawing.Font("Corbel", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
                 Languege = false; // False: Eng True: Ru
                 this.checkBox1.Font = new System.Drawing.Font("Microsoft Sans Serif", 12F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
                 Share.Text = "Share tab";
                 Connect.Text = "Connect tab";
-                this.Connect.Font = new System.Drawing.Font("Verdana", 13.8F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
+                this.Connect.Font = new System.Drawing.Font("Corbel", 14.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(204)));
                 if (Server == true)
                 {
                     label2.Text = "Sharing";
@@ -430,9 +430,10 @@ namespace WindowsFormsApp1
                     label2.Text = "Connecting";
                     button1.Text = "Connect";
                 }
-                Host.Text = "Host";
+                Host.Text = "Host:";
                 button5.Text = "Clear Output";
-                label1.Text = "Port";
+                label1.Font = new System.Drawing.Font("Corbel Light", 15.75F);
+                label1.Text = "Port:";
                 button2.Text = "Stop";
                 label3.Text = "Output";
             }
